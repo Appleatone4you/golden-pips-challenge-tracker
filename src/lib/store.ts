@@ -16,7 +16,7 @@ const calculateInitialLevels = (initialCapital: number): TradeLevel[] => {
       targetProfit,
       runningBalance: currentBalance + targetProfit,
       status: i === 1 ? "current" : "pending",
-    });
+    } as TradeLevel);
 
     currentBalance += targetProfit;
   }
@@ -68,8 +68,9 @@ export const useTradeStore = create<TradeStore>((set, get) => ({
     const updatedLevels = state.levels.map(level => ({
       ...level,
       status: 
-        level.level < newCurrentLevel ? "completed" :
-        level.level === newCurrentLevel ? "current" : "pending"
+        level.level < newCurrentLevel ? "completed" as const :
+        level.level === newCurrentLevel ? "current" as const : 
+        "pending" as const
     }));
 
     set({
