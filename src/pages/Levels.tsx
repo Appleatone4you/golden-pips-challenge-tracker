@@ -2,7 +2,7 @@
 import Navigation from "@/components/layout/Navigation";
 import { Card } from "@/components/ui/card";
 import { useTradeStore } from "@/lib/store";
-import { Check, Circle, RadioButton } from "lucide-react";
+import { Check, Circle, Radio } from "lucide-react";
 
 const Levels = () => {
   const { levels } = useTradeStore();
@@ -39,7 +39,7 @@ const Levels = () => {
                   <td className="p-3">${level.runningBalance.toLocaleString()}</td>
                   <td className="p-3">
                     {level.status === "completed" && <Check className="w-4 h-4 text-trading-profit" />}
-                    {level.status === "current" && <RadioButton className="w-4 h-4 text-primary" />}
+                    {level.status === "current" && <Radio className="w-4 h-4 text-primary" />}
                     {level.status === "pending" && <Circle className="w-4 h-4 text-muted-foreground" />}
                   </td>
                 </tr>
