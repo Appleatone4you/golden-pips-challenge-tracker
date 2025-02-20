@@ -12,6 +12,7 @@ const Index = () => {
   
   const currentLevelData = levels[currentLevel - 1];
   const progressPercentage = (currentLevel / 30) * 100;
+  const lotSize = (currentLevelData.targetProfit / 200).toFixed(2);
   
   const handleTrade = (isProfit: boolean) => {
     const amount = isProfit ? currentLevelData.targetProfit : -currentLevelData.targetProfit;
@@ -51,6 +52,9 @@ const Index = () => {
           <p className="text-3xl font-bold text-primary">
             ${currentCapital.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Lot Size: {lotSize}
+          </p>
         </Card>
 
         <Card className="glass-card p-6">
@@ -66,9 +70,11 @@ const Index = () => {
         <Card className="glass-card p-6">
           <h3 className="text-lg font-medium mb-4">Maximum Loss</h3>
           <p className="text-2xl font-bold text-trading-loss">
-            -${currentLevelData.targetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            -${(currentLevel === 1 ? currentLevelData.targetProfit : levels[currentLevel - 2].targetProfit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
-          <p className="text-sm text-muted-foreground mt-1">Equal to target profit at Level {currentLevel}</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {currentLevel === 1 ? "Equal to target profit at Level 1" : "Equal to target profit at Level " + (currentLevel - 1)}
+          </p>
         </Card>
 
         <Card className="glass-card p-6 col-span-full">
@@ -85,7 +91,7 @@ const Index = () => {
               variant="destructive"
               className="flex-1"
             >
-              Lose Trade (-{currentLevelData.targetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+              Lose Trade (-{(currentLevel === 1 ? currentLevelData.targetProfit : levels[currentLevel - 2].targetProfit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
             </Button>
           </div>
         </Card>
