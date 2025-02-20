@@ -1,4 +1,3 @@
-
 import { create } from "zustand";
 import { TradeState, TradeLevel } from "./types";
 
@@ -7,8 +6,7 @@ const calculateInitialLevels = (initialCapital: number): TradeLevel[] => {
   let currentBalance = initialCapital;
 
   for (let i = 1; i <= 30; i++) {
-    const powerFactor = 1 + (i * 0.1);
-    const targetProfit = currentBalance * (0.3 * powerFactor);
+    const targetProfit = currentBalance * 0.3; // Simplified to exactly 30% of opening balance
     
     levels.push({
       level: i,
