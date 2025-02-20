@@ -26,6 +26,7 @@ const Levels = () => {
                 <th className="p-3">Level</th>
                 <th className="p-3">Opening Balance</th>
                 <th className="p-3">Target Profit</th>
+                <th className="p-3">Lot Size</th>
                 <th className="p-3">Running Balance</th>
                 <th className="p-3">Status</th>
               </tr>
@@ -36,6 +37,7 @@ const Levels = () => {
                   <td className="p-3">Level {level.level}</td>
                   <td className="p-3">${level.openingBalance.toLocaleString()}</td>
                   <td className="p-3 text-trading-profit">+${level.targetProfit.toLocaleString()}</td>
+                  <td className="p-3">{(level.targetProfit / 200).toFixed(2)}</td>
                   <td className="p-3">${level.runningBalance.toLocaleString()}</td>
                   <td className="p-3">
                     {level.status === "completed" && <Check className="w-4 h-4 text-trading-profit" />}
