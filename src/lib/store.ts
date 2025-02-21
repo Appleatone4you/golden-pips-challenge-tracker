@@ -1,5 +1,6 @@
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { TradeState, TradeLevel } from "./types";
 
 const calculateInitialLevels = (initialCapital: number): TradeLevel[] => {
@@ -29,71 +30,78 @@ interface TradeStore extends TradeState {
   resetChallenge: () => void;
 }
 
-export const useTradeStore = create<TradeStore>((set, get) => ({
-  currentLevel: 1,
-  initialCapital: 10000,
-  currentCapital: 10000,
-  levels: calculateInitialLevels(10000),
-  trades: [],
-
-  initializeChallenge: (initialCapital: number) => {
-    set({
+export const useTradeStore = create<TradeStore>()(
+  persist(
+    (set, get) => ({
       currentLevel: 1,
-      initialCapital,
-      currentCapital: initialCapital,
-      levels: calculateInitialLevels(initialCapital),
+      initialCapital: 10000,
+      currentCapital: 10000,
+      levels: calculateInitialLevels(10000),
       trades: [],
-    });
-  },
 
-  recordTrade: (profitLoss: number) => {
-    const state = get();
-    const currentLevelData = state.levels[state.currentLevel - 1];
-    const previousLevelData = state.currentLevel > 1 ? state.levels[state.currentLevel - 2] : null;
-    
-    // For losses, use previous level's target profit except for Level 1
-    const actualLoss = state.currentLevel === 1 
-      ? currentLevelData.targetProfit 
-      : (previousLevelData ? previousLevelData.targetProfit : currentLevelData.targetProfit);
-    
-    const newBalance = state.currentCapital + (profitLoss > 0 ? profitLoss : -actualLoss);
-    
-    const newTrade = {
-      id: Date.now().toString(),
-      date: new Date(),
-      level: state.currentLevel,
-      lotSize: currentLevelData.targetProfit / 200,
-      profitLoss: profitLoss > 0 ? profitLoss : -actualLoss,
-      balance: newBalance,
-    };
+      initializeChallenge: (initialCapital: number) => {
+        set({
+          currentLevel: 1,
+          initialCapital,
+          currentCapital: initialCapital,
+          levels: calculateInitialLevels(initialCapital),
+          trades: [],
+        });
+      },
 
-    let newCurrentLevel = profitLoss > 0 
-      ? Math.min(state.currentLevel + 1, 30)
-      : Math.max(1, state.currentLevel - 1);
+      recordTrade: (profitLoss: number) => {
+        const state = get();
+        const currentLevelData = state.levels[state.currentLevel - 1];
+        const previousLevelData = state.currentLevel > 1 ? state.levels[state.currentLevel - 2] : null;
+        
+        // For losses, use previous level's target profit except for Level 1
+        const actualLoss = state.currentLevel === 1 
+          ? currentLevelData.targetProfit 
+          : (previousLevelData ? previousLevelData.targetProfit : currentLevelData.targetProfit);
+        
+        const newBalance = state.currentCapital + (profitLoss > 0 ? profitLoss : -actualLoss);
+        
+        const newTrade = {
+          id: Date.now().toString(),
+          date: new Date(),
+          level: state.currentLevel,
+          lotSize: currentLevelData.targetProfit / 200,
+          profitLoss: profitLoss > 0 ? profitLoss : -actualLoss,
+          balance: newBalance,
+        };
 
-    const updatedLevels = state.levels.map(level => ({
-      ...level,
-      status: 
-        level.level < newCurrentLevel ? "completed" as const :
-        level.level === newCurrentLevel ? "current" as const : 
-        "pending" as const
-    }));
+        let newCurrentLevel = profitLoss > 0 
+          ? Math.min(state.currentLevel + 1, 30)
+          : Math.max(1, state.currentLevel - 1);
 
-    set({
-      currentLevel: newCurrentLevel,
-      currentCapital: newBalance,
-      levels: updatedLevels,
-      trades: [...state.trades, newTrade],
-    });
-  },
+        const updatedLevels = state.levels.map(level => ({
+          ...level,
+          status: 
+            level.level < newCurrentLevel ? "completed" as const :
+            level.level === newCurrentLevel ? "current" as const : 
+            "pending" as const
+        }));
 
-  resetChallenge: () => {
-    const state = get();
-    set({
-      currentLevel: 1,
-      currentCapital: state.initialCapital,
-      levels: calculateInitialLevels(state.initialCapital),
-      trades: [],
-    });
-  },
-}));
+        set({
+          currentLevel: newCurrentLevel,
+          currentCapital: newBalance,
+          levels: updatedLevels,
+          trades: [...state.trades, newTrade],
+        });
+      },
+
+      resetChallenge: () => {
+        const state = get();
+        set({
+          currentLevel: 1,
+          currentCapital: state.initialCapital,
+          levels: calculateInitialLevels(state.initialCapital),
+          trades: [],
+        });
+      },
+    }),
+    {
+      name: 'trade-storage', // unique name for localStorage key
+    }
+  )
+);
