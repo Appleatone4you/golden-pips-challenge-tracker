@@ -7,8 +7,7 @@ const calculateInitialLevels = (initialCapital: number): TradeLevel[] => {
   let currentBalance = initialCapital;
 
   for (let i = 1; i <= 30; i++) {
-    const powerFactor = 1 + (i * 0.1);
-    const targetProfit = currentBalance * (0.3 * powerFactor);
+    const targetProfit = currentBalance * 0.3;
     
     levels.push({
       level: i,
@@ -16,7 +15,7 @@ const calculateInitialLevels = (initialCapital: number): TradeLevel[] => {
       targetProfit,
       runningBalance: currentBalance + targetProfit,
       status: i === 1 ? "current" : "pending",
-    });
+    } as TradeLevel);
 
     currentBalance += targetProfit;
   }
@@ -49,15 +48,22 @@ export const useTradeStore = create<TradeStore>((set, get) => ({
 
   recordTrade: (profitLoss: number) => {
     const state = get();
-    const newBalance = state.currentCapital + profitLoss;
-    const currentLevel = state.levels[state.currentLevel - 1];
+    const currentLevelData = state.levels[state.currentLevel - 1];
+    const previousLevelData = state.currentLevel > 1 ? state.levels[state.currentLevel - 2] : null;
+    
+    // For losses, use previous level's target profit except for Level 1
+    const actualLoss = state.currentLevel === 1 
+      ? currentLevelData.targetProfit 
+      : (previousLevelData ? previousLevelData.targetProfit : currentLevelData.targetProfit);
+    
+    const newBalance = state.currentCapital + (profitLoss > 0 ? profitLoss : -actualLoss);
     
     const newTrade = {
       id: Date.now().toString(),
       date: new Date(),
       level: state.currentLevel,
-      lotSize: currentLevel.targetProfit / 200,
-      profitLoss,
+      lotSize: currentLevelData.targetProfit / 200,
+      profitLoss: profitLoss > 0 ? profitLoss : -actualLoss,
       balance: newBalance,
     };
 
@@ -68,8 +74,9 @@ export const useTradeStore = create<TradeStore>((set, get) => ({
     const updatedLevels = state.levels.map(level => ({
       ...level,
       status: 
-        level.level < newCurrentLevel ? "completed" :
-        level.level === newCurrentLevel ? "current" : "pending"
+        level.level < newCurrentLevel ? "completed" as const :
+        level.level === newCurrentLevel ? "current" as const : 
+        "pending" as const
     }));
 
     set({
