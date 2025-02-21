@@ -7,11 +7,18 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 const Analytics = () => {
   const { trades, currentCapital, initialCapital } = useTradeStore();
 
+  // Calculate statistics
+  const winningTrades = trades.filter(t => t.profitLoss > 0);
+  const losingTrades = trades.filter(t => t.profitLoss <= 0);
+  
   const winRate = trades.length > 0 
-    ? (trades.filter(t => t.profitLoss > 0).length / trades.length) * 100 
+    ? (winningTrades.length / trades.length) * 100 
     : 0;
 
   const totalGrowth = ((currentCapital - initialCapital) / initialCapital) * 100;
+  
+  const totalProfits = winningTrades.reduce((sum, trade) => sum + trade.profitLoss, 0);
+  const totalLosses = losingTrades.reduce((sum, trade) => sum + trade.profitLoss, 0);
 
   const chartData = trades.map((trade, index) => ({
     name: `Trade ${index + 1}`,
@@ -33,6 +40,14 @@ const Analytics = () => {
         <Card className="glass-card p-6">
           <h3 className="text-lg font-medium mb-4">Win Rate</h3>
           <p className="text-3xl font-bold text-primary">{winRate.toFixed(1)}%</p>
+          <div className="mt-2 space-y-1">
+            <p className="text-sm text-muted-foreground">
+              Winning Trades: <span className="text-trading-profit">{winningTrades.length}</span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Losing Trades: <span className="text-trading-loss">{losingTrades.length}</span>
+            </p>
+          </div>
         </Card>
 
         <Card className="glass-card p-6">
@@ -40,11 +55,32 @@ const Analytics = () => {
           <p className="text-3xl font-bold text-trading-profit">
             {totalGrowth > 0 ? "+" : ""}{totalGrowth.toFixed(1)}%
           </p>
+          <div className="mt-2 space-y-1">
+            <p className="text-sm text-muted-foreground">
+              Initial Capital: <span className="font-medium">${initialCapital.toLocaleString()}</span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Current Capital: <span className="font-medium">${currentCapital.toLocaleString()}</span>
+            </p>
+          </div>
         </Card>
 
         <Card className="glass-card p-6">
-          <h3 className="text-lg font-medium mb-4">Total Trades</h3>
-          <p className="text-3xl font-bold text-primary">{trades.length}</p>
+          <h3 className="text-lg font-medium mb-4">Profit & Loss</h3>
+          <div className="space-y-2">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Profits</p>
+              <p className="text-2xl font-bold text-trading-profit">
+                +${totalProfits.toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Total Losses</p>
+              <p className="text-2xl font-bold text-trading-loss">
+                ${totalLosses.toLocaleString()}
+              </p>
+            </div>
+          </div>
         </Card>
 
         <Card className="glass-card p-6 col-span-full h-[400px]">
